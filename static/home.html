@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>thecrunchybear</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 導覽列 -->
+    <div id="navbar"></div>
+    <div class="news-container">
+        <div class="news-box">
+            <h2 class="news-title">最新消息</h2>
+            <p><strong>1.歡慶官網上線！首次外送平台訂購，享免運費送到家。結帳輸入【NEW】<a href="https://thecrunchybear.oddle.me/zh_TW/" target="_blank">外送</a></strong></p>
+            <p><strong>2.手做餅乾課程開課啦~歡迎帶著小朋友同來享受親子時光。(私訊 
+                <a href="https://www.instagram.com/thecrunchybear/" target="_blank">
+                    <i class="fab fa-instagram fa-lg"></i>
+                </a>)</strong></p>
+
+        </div>
+    </div>
+
+    <img src="/image/浮水印.jpg" class="watermark-img">
+
+    <div id="footer"></div>
+
+    <script type="module">
+    import { logout , loadUserStatus } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+    async function loadLayout() {
+        
+        // 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+
+        // 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+        await loadUserStatus();
+        controlNavbarLinks();
+    
+    }
+    loadLayout();
+    window.logout = logout;
+    </script>
+
+</body>
+</html>

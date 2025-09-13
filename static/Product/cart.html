@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>thecrunchybear</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 導覽列 -->
+    <div id="navbar"></div>
+    <div class = cart-page>
+        <h2>🛒 購物車</h2>
+        <table>
+            <tr>
+                <th>商品</th>
+                <th>圖片</th>
+                <th>單價</th>
+                <th>數量</th>
+                <th>小計</th>
+                <th>操作</th>
+            </tr>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td><img src="{{ item.img }}" width="80"></td>
+                <td class="price">{{ item.price }}</td>
+                <td>
+                    <div class="quantity-control">
+                        <button type="button" onclick="changeQuantity(this, -1)">－</button>
+                        <input type="text" name="quantity" value="{{ item.quantity }}" readonly>
+                        <input type="hidden" name="name" value="{{ item.name }}">
+                        <button type="button" onclick="changeQuantity(this, 1)">＋</button>
+                    </div>
+                </td>
+                <td class="subtotal">{{ item.price * item.quantity }}</td>
+                <td>
+                    <form method="post" action="/remove_from_cart">
+                        <input type="hidden" name="name" value="{{ item.name }}">
+                        <button type="submit">移除</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <h3>總金額：<span id="total-amount">{{ total }}</span> 元</h3>
+    </div>
+
+
+    <script type="module">
+    import { logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+
+    const navRes = await fetch("/static/components/navbar.html");
+    document.getElementById("navbar").innerHTML = await navRes.text();
+
+    await loadUserStatus();
+    controlNavbarLinks();
+    
+    const footerRes = await fetch("/static/components/footer.html");
+    document.getElementById("footer").innerHTML = await footerRes.text();
+    
+    function changeQuantity(btn, delta) {
+            const input = btn.parentNode.querySelector("input[name='quantity']");
+            let qty = parseInt(input.value);
+            const MAX_QTY = 10;
+            const MIN_QTY = 0;
+
+            // 檢查是否超過上限
+            if (qty >= MAX_QTY && delta > 0) {
+                alert("最多只能購買 " + MAX_QTY + " 件,需大量訂購請聯私訊Instergram");
+                return;
+            }
+
+            // 檢查是否低於下限
+            if (qty <= MIN_QTY && delta < 0) {
+                return;
+            }
+
+            // 更新數值
+            qty = qty + delta;
+            input.value = qty;
+            const row = btn.closest("tr");
+            const price = parseInt(row.querySelector(".price").innerText) || 0;
+            row.querySelector(".subtotal").innerText = price * qty;
+
+            // 更新總金額
+            updateTotal();
+        }
+
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll(".subtotal").forEach(cell => {
+            total += parseInt(cell.innerText) || 0;
+        });
+        document.getElementById("total-amount").innerText = total;
+    }
+
+    window.onload = updateTotal;
+    window.logout = logout;
+    </script>
+
+</body>
+</html>

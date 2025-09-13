@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>登入頁面</title>
+  <link rel="icon" type="image/png" href="/image/favicon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 導覽列 -->
+    <div id="navbar"></div>
+    <h2 class="login-title">登入系統</h2>
+    <div id="errorBox"  class="error-text"></div>
+    <form id = "loginForm" class="login-form">
+        <label>帳號：</label>
+        <input type="text" id="account"><br><br>
+        <label>密碼：</label>
+        <input type="password"  id="password"><br><br>
+        <div style="display: flex; gap: 10px;">
+            <input type="submit" class="login-btn" value="登入">
+            <button type="button" class="login-build-btn" onclick="window.location.href='/build'">註冊</button>
+        </div>
+    </form>
+    <img src="/image/浮水印.jpg" class="watermark-img">
+    <div id="footer"></div>
+
+    <script type="module">
+    import { logout , loadUserStatus } from "/static/js/auth.js";
+    async function loadLayout() {
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+
+        // 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+        
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const data = {
+                    account: document.getElementById("account").value.trim(),
+                    password: document.getElementById("password").value.trim()
+                };
+
+                const logsuc = await fetch("/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await logsuc.json();
+                const errorBox = document.getElementById("errorBox");
+                errorBox.innerText = "";
+
+                if (logsuc.ok) {
+                    // ✅ 儲存 JWT
+                    localStorage.setItem("token", result.token);
+
+                    // ✅ 自動跳轉
+                    window.location.href = "/";
+                } else {
+                    errorBox.innerText = result.error || "登入失敗";
+                }
+            });
+        }
+        await loadUserStatus();
+    }
+    loadLayout();
+    window.logout = logout;
+    </script>
+</body>
+</html>
+
+

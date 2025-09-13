@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理頁面</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <div class="product-container">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>圖片</th>
+                    <th>名稱</th>
+                    <th>描述</th>
+                    <th>價格</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody"><!-- 由 JS 動態填入 --></tbody>
+        </table>
+        <div class="table-bottom-btn">
+            <button onclick="location.href='/products_build'" class="btn-build">新增產品</button>
+        </div>
+    </div>
+    <img src="/image/浮水印.jpg" class="watermark-img">
+    <div id="footer"></div>
+
+    <script type="module">
+    import { logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+    // ✅ 讀 token
+    const token = localStorage.getItem("token");
+
+    async function loadpage() {
+
+        // ✅ 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+
+        // ✅ 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+        await loadUserStatus();
+        controlNavbarLinks();
+
+        // ✅ 檢查是否沒有 token 或 token 已過期
+        if (!token || isTokenExpired(token)) {
+            alert("請先登入！");
+            localStorage.removeItem("token");  // 移除過期 token
+            window.location.href = "/login";
+            return;
+        }
+
+        // ✅ 撈資料
+        const res = await fetch("/api/products_management", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+        renderTable(data.products);
+    }
+
+    // ✅ 渲染表格
+    function renderTable(products) {
+        const tbody = document.getElementById("productTableBody");
+        tbody.innerHTML = "";
+
+        products.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td><img src="${p.img}" alt="${p.name}"></td>
+            <td>${p.name}</td>
+            <td>${p.description}</td>
+            <td>${p.price} 元</td>
+            <td>
+                <button class="btn-edit" data-name="${p.name}">編輯</button>
+                <button class="btn-delete" data-name="${p.name}">刪除</button>
+            </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            const name = btn.dataset.name;
+            if (!confirm(`確定要刪除「${name}」嗎？`)) return;
+
+            const token = localStorage.getItem("token");
+
+            const res = await fetch(`/api/products_delete/${name}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message || "刪除成功！");
+                loadpage(); // 重新載入列表
+            } else {
+                alert(result.error || "刪除失敗");
+            }
+        });
+    });
+
+    // 編輯按鈕導向
+        document.querySelectorAll(".btn-edit").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const name = e.target.dataset.name;
+                if (!name) {
+                    alert("商品名稱取得失敗！");
+                    return;
+                }
+                window.location.href = `/products_edit/${name}`;
+            });
+        });
+    }
+
+    loadpage();
+    window.logout = logout;
+    </script>
+
+</body>
+</html>
+

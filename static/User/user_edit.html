@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>使用者編輯頁面</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <div style="max-width: 500px;">
+        <label for="account">帳號（不可改）：</label>
+        <input type="text" id="account" readonly><br><br>
+
+        <label for="username">姓名：</label>
+        <input type="text" id="username"><br><br>
+
+        <label for="phone">電話：</label>
+        <input type="text" id="phone"><br><br>
+
+        <label for="email">Email：</label>
+        <input type="email" id="email"><br><br>
+
+        <label for="level">Level：</label>
+        <input type="number" id="level"><br><br>
+
+        <button id="update-btn">更新資料</button>
+        <a href="/users_management"><button type="button">取消</button></a>
+    </div>
+
+    <img src="/image/浮水印.jpg" class="watermark-img">
+
+    <div id="footer"></div>
+    <script type="module">
+    import { logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+
+    // ✅ 提到外層才能在其他 function 也讀到
+    const rawName = window.location.pathname.split("/").pop();
+    const account = decodeURIComponent(rawName);
+    const token = localStorage.getItem("token");
+
+    if (!token || isTokenExpired(token)) {
+        alert("請先登入");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+    }
+
+    async function loadpage() {
+        // ✅ 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+        // ✅ 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+        await loadUserStatus();
+        controlNavbarLinks();
+
+        // ✅ 撈使用者資料
+        const res = await fetch(`/api/user_edit/${encodeURIComponent(account)}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (!res.ok) {
+        console.error("讀取失敗", res.status, await res.text());
+        alert("讀取使用者資料失敗");
+        return;
+      }
+
+        const data = await res.json();
+        const p = data?.user;
+        if (!p) {
+            alert("找不到使用者資料");
+            return;
+        }
+
+        document.getElementById("account").value = p.account;
+        document.getElementById("username").value = p.username;
+        document.getElementById("phone").value = p.phone;
+        document.getElementById("email").value = p.email;
+        document.getElementById("level").value = p.level;
+    }
+
+    // ✅ 點擊更新按鈕
+    document.getElementById("update-btn").addEventListener("click", async () => {
+        const username = document.getElementById("username").value;
+        const phone = document.getElementById("phone").value;
+        const email = document.getElementById("email").value;
+        const level = document.getElementById("level").value;
+
+        const res = await fetch(`/api/user_edit/${account}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ username, phone, email, level })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+            alert("更新成功！");
+            window.location.href = "/users_management";
+        } else {
+            alert(result.detail || "更新失敗！");
+        }
+    });
+
+    // ✅ 初始化頁面
+    loadpage();
+    window.logout = logout;
+    </script>
+
+</body>
+</html>

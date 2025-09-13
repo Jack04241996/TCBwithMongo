@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>使用者管理頁面</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>帳號</th>
+                <th>姓名</th>
+                <th>電話</th>
+                <th>Email</th>
+                <th>Level</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="UserTableBody"><!-- 由 JS 動態填入 --></tbody>
+    </table>
+    <img src="/image/浮水印.jpg" class="watermark-img">
+    <div id="footer"></div>
+
+    <script type="module">
+    import { logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+    // ✅ 讀 token
+    const token = localStorage.getItem("token");
+
+    async function loadpage() {
+
+        // ✅ 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+
+        // ✅ 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+        await loadUserStatus();
+        controlNavbarLinks();
+
+        // ✅ 檢查是否沒有 token 或 token 已過期
+        if (!token || isTokenExpired(token)) {
+            alert("請先登入！");
+            localStorage.removeItem("token");  // 移除過期 token
+            window.location.href = "/login";
+            return;
+        }
+
+        // ✅ 撈資料
+        const res = await fetch("/api/users_management", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+        renderTable(data.users);
+    }
+
+    // ✅ 渲染表格
+    function renderTable(users) {
+        const tbody = document.getElementById("UserTableBody");
+        tbody.innerHTML = "";
+
+        users.forEach(p => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td>${p.account}</td>
+            <td>${p.username}</td>
+            <td>${p.phone}</td>
+            <td>${p.email}</td>
+            <td>${p.level}</td>
+            <td>
+                <button class="btn-edit" data-account="${p.account}">編輯</button>
+                <button class="btn-delete" data-account="${p.account}">刪除</button>
+            </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+            const account = btn.dataset.account;
+            if (!confirm(`確定要刪除「${account}」嗎？`)) return;
+
+            const token = localStorage.getItem("token");
+
+            const res = await fetch(`/api/user_delete/${account}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message || "刪除成功！");
+                loadpage(); // 重新載入列表
+            } else {
+                alert(result.error || "刪除失敗");
+            }
+        });
+    });
+
+    // 編輯按鈕導向
+        document.querySelectorAll(".btn-edit").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const account = e.target.dataset.account;
+                if (!account) {
+                    alert("使用者名稱取得失敗！");
+                    return;
+                }
+                window.location.href = `/user_edit/${account}`;
+            });
+        });
+    }
+
+    loadpage();
+    window.logout = logout;
+    </script>
+
+</body>
+</html>

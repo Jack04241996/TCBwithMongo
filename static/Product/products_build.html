@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>商品管理頁面</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <div class="form-container">
+        <h2>新增產品</h2>
+        <div id="error" class="error" style="display:none;"></div>
+
+        <form id="addForm">
+            <div class="form-group">
+                <label for="name">產品名稱：</label>
+                <input type="text" id="name" name="name" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label for="price">價格：</label>
+                <input type="text" id="price" name="price" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label for="img">圖片路徑：</label>
+                <input type="text" id="img" name="img" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label for="description">描述：</label>
+                <input type="text" id="description" name="description" class="form-input">
+            </div>
+
+            <button type="submit" class="submit-btn">新增產品</button>
+        </form>
+    </div>
+    <img src="/image/浮水印.jpg" class="watermark-img">
+    <div id="footer"></div>
+
+    <script type="module">
+    import {  logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+    // ✅ 讀 token
+    const token = localStorage.getItem("token");
+    async function loadpage() {
+
+        // ✅ 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+        
+        await loadUserStatus();
+        controlNavbarLinks();
+
+        // ✅ 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+
+
+        // ✅ 檢查是否沒有 token 或 token 已過期
+        if (!token || isTokenExpired(token)) {
+            alert("請先登入！");
+            localStorage.removeItem("token");  // 移除過期 token
+            window.location.href = "/login";
+            return;
+        }
+    }
+
+
+    // 新增產品表單提交處理
+    document.getElementById("addForm").addEventListener("submit", async (e) => {
+        e.preventDefault(); // 防止表單預設行為
+
+        const name = document.getElementById("name").value.trim();
+        const price = document.getElementById("price").value.trim();
+        const img = document.getElementById("img").value.trim();
+        const description = document.getElementById("description").value.trim();
+
+        const payload = { name, price, img, description };
+
+        const res = await fetch("/api/products_build", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+            alert("✅ 新增成功！");
+            window.location.href = "/products_management";
+        } else {
+            const errorDiv = document.getElementById("error");
+            errorDiv.style.display = "block";
+            errorDiv.textContent = result.detail || result.message || "新增失敗";
+        }
+    });
+    loadpage();
+    window.logout = logout;
+    </script>
+
+</body>
+</html>

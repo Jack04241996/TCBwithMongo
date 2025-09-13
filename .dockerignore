@@ -1,0 +1,24 @@
+# Python 編譯快取
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 環境設定（避免敏感資訊被打包進 image）
+.env
+*.env
+
+# Git 相關
+.git
+.gitignore
+
+# IDE / 編輯器設定
+.vscode/
+.idea/
+
+# 作業系統雜項
+.DS_Store
+Thumbs.db
+
+# 不需要打包的檔案（依專案情況）
+*.log

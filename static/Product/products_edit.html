@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>商品編輯頁面</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div style="max-width: 500px;">
+        <label for="name">商品名稱：</label><br>
+        <input type="text" id="name" readonly><br><br>
+
+        <label for="price">價格：</label><br>
+        <input type="text" id="price"><br><br>
+
+        <label for="description">描述：</label><br>
+        <textarea id="description" rows="4" style="width: 100%;"></textarea><br><br>
+
+        <label for="img">圖片網址：</label><br>
+        <input type="text" id="img"><br><br>
+
+        <img id="preview-img" src="" alt="商品圖片" width="200"><br><br>
+
+        <button id="update-btn">更新商品</button>
+        <a href="/products_management"><button type="button">取消</button></a>
+    </div>
+
+    <img src="/image/浮水印.jpg" class="watermark-img">
+
+    <div id="footer"></div>
+
+
+   <script type="module">
+    import { logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+    // ✅ 提到外層才能在其他 function 也讀到
+    const rawName = window.location.pathname.split("/").pop();
+    const name = decodeURIComponent(rawName);
+    const token = localStorage.getItem("token");
+
+    if (!token || isTokenExpired(token)) {
+        alert("請先登入");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+    }
+
+    async function loadpage() {
+        // ✅ 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+
+        // ✅ 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+        await loadUserStatus();
+        controlNavbarLinks();
+        // ✅ 撈商品資料
+        const res = await fetch(`/api/products_edit/${name}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+        const p = data.products;
+        document.getElementById("name").value = p.name;
+        document.getElementById("price").value = p.price;
+        document.getElementById("description").value = p.description;
+        document.getElementById("img").value = p.img;
+        document.getElementById("preview-img").src = p.img;
+    }
+
+    // ✅ 點擊更新按鈕
+    document.getElementById("update-btn").addEventListener("click", async () => {
+        const price = document.getElementById("price").value;
+        const description = document.getElementById("description").value;
+        const img = document.getElementById("img").value;
+
+        const res = await fetch(`/api/products_edit/${name}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ price, description, img })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+            alert("更新成功！");
+            window.location.href = "/products_management";
+        } else {
+            alert(result.detail || "更新失敗！");
+        }
+    });
+
+    // ✅ 初始化頁面
+    loadpage();
+    window.logout = logout;
+    </script>
+
+</body>
+</html>

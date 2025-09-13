@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>登入頁面</title>
+  <link rel="icon" type="image/png" href="/image/favicon.png">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 導覽列 -->
+    <div id="navbar"></div>
+    <h2 class="register-title">註冊帳號</h2>
+    <div id="errorBox"  class="error-text"></div>
+    <div id="successBox"  class = "success-text"></div>
+
+    <form id="registerForm" class="register-form">
+        <label>帳號：</label><input type="text" id="account"><br><br>
+        <label>密碼：</label><input type="password" id="password"><br><br>
+        <label>姓名：</label><input type="text" id="username"><br><br>
+        <label>電話：</label><input type="text" id="phone"><br><br>
+        <label>Email：</label><input type="email" id="email"><br><br>
+        <input type="submit" value="註冊" class="register-btn">
+    </form>
+    <img src="/image/浮水印.jpg" class="watermark-img">
+    <div id="footer"></div>
+
+
+    <script type="module">
+    import {loadUserStatus } from "/static/js/auth.js";
+    const navRes = await fetch("/static/components/navbar.html");
+    document.getElementById("navbar").innerHTML = await navRes.text();
+    // ✅ 載入 footer
+    const footerRes = await fetch("/static/components/footer.html");
+    document.getElementById("footer").innerHTML = await footerRes.text();
+
+    document.getElementById("registerForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const data = {
+            account: document.getElementById("account").value.trim(),
+            password: document.getElementById("password").value.trim(),
+            username: document.getElementById("username").value.trim(),
+            phone: document.getElementById("phone").value.trim(),
+            email: document.getElementById("email").value.trim()
+        };
+
+        const res = await fetch("/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        console.log("伺服器回應：", result);
+        const errorBox = document.getElementById("errorBox");
+        const successBox = document.getElementById("successBox");
+        errorBox.innerText = "";
+        successBox.innerText = "";
+
+
+        if (res.ok) {
+            document.getElementById("successBox").innerText = result.message + "（5秒後跳轉）";
+            setTimeout(() => {
+                window.location.href = "/login"; 
+            }, 5000);
+            }
+        else {
+            errorBox.innerText = result.error || "發生未知錯誤";
+        }
+    });
+    await loadUserStatus();
+    </script>
+</body>
+</html>
+
+

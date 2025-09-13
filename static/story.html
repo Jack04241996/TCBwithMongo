@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>thecrunchybear</title>
+    <link rel="icon" type="image/png" href="/image/favicon.png">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 導覽列 -->
+    <div id="navbar"></div>
+    <div class="story-container">
+        <div class="story-box">
+            <h2 class="story-title">我們的故事</h2>
+            <p><strong>每一塊餅乾，都是一段記憶的延續。</strong></p>
+            <p>
+                The Crunchy Bear 的起點，是在一個溫暖的家庭廚房裡。創辦人因為對烘焙的熱愛，每天在小小的工作室裡，用最簡單、最純粹的原料，一次又一次地試做，只為了找出那剛剛好的酥脆與溫度。
+            </p>
+            <p>
+                起初只是烘烤給朋友與家人分享，沒想到一份小小的甜點，竟能讓人露出那麼真誠的微笑。「<span class="highlight">你應該開一間店！！</span>」這句話被一次次地提起，成了我們最堅定的信念。
+            </p>
+            <p>
+                就這樣，在朋友的支持下，我們從工作室踏進了街角的小店鋪，懷抱著緊張與期待，將一塊塊餅乾、一句句問候，傳遞給每一位進門的客人。
+            </p>
+            <p>
+                我們堅持只用自己敢吃的好食材、不急不趕地手作每一批點心，因為我們相信，<span class="highlight">這世界雖然快，但溫柔的滋味值得等待。</span>
+            </p>
+            <p>
+                The Crunchy Bear 不只是賣餅乾的地方，而是我們一起分享回憶、傳遞情感的角落。<br>
+                歡迎你，在每一段日常的片刻裡，都來這裡坐坐，吃一塊餅乾，讓日子變得更甜一點。
+            </p>
+        </div>
+    </div>
+
+    <img src="/image/浮水印.jpg" class="watermark-img">
+
+    <div id="footer"></div>
+
+    <script type="module">
+    import { logout , loadUserStatus } from "/static/js/auth.js";
+    import { controlNavbarLinks } from "/static/js/navbar.js";
+    async function loadLayout() {
+        
+        // 載入 navbar
+        const navRes = await fetch("/static/components/navbar.html");
+        document.getElementById("navbar").innerHTML = await navRes.text();
+
+        // 載入 footer
+        const footerRes = await fetch("/static/components/footer.html");
+        document.getElementById("footer").innerHTML = await footerRes.text();
+
+        await loadUserStatus();
+        controlNavbarLinks();
+    
+    }
+    loadLayout();
+    window.logout = logout;
+    </script>
+</body>
+</html>
+
