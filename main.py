@@ -1,17 +1,19 @@
 from fastapi import FastAPI, HTTPException , Request
-from fastapi.responses import  RedirectResponse ,JSONResponse , FileResponse
-from database import users_collection , products_collection , client, db_user
+from fastapi.responses import JSONResponse , FileResponse
+from database import users_collection , products_collection
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from middleware import  require_level, JWTAuthMiddleware
 from jwt_handler import create_jwt , decode_jwt
 import os
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError
 from passlib.context import CryptContext
-from model import RegisterData , LoginData , UserUpdate, CartItem
+from model import RegisterData , LoginData , UserUpdate
 from contextlib import asynccontextmanager
 from urllib.parse import urlsplit, urlunsplit
 
-load_dotenv() 
+load_dotenv(override=False) 
 SECRET_KEY = os.getenv("SECRET_KEY")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -31,21 +33,25 @@ def _redact(uri: str) -> str:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # ---- startup 區塊 ----
-    print("▶ Using MONGO_URI:", _redact(os.getenv("MONGO_URI", "")))
+    uri = os.getenv("MONGO_URI", "")
+    print("▶ Using MONGO_URI:", _redact(uri))
+    app.state.mongo = None
+    app.state.db = None
     try:
-        await client.admin.command("hello")  # 確認能連
-        n = await db_user["products"].count_documents({})
-        print(f"✅ Mongo OK，products 筆數 = {n}")
-    except Exception as e:
-        print("❌ Mongo 連線失敗：", e)
-        raise  # 啟動失敗時直接中止
-
-    yield  # ---- app 服務運行中 ----
-
-    # ---- shutdown 區塊 ----
-    await client.aclose()
-    print("🛑 Mongo client closed.")
+        client = MongoClient(uri, serverSelectionTimeoutMS=2000, maxPoolSize=100)
+        # 可選：輕量驗證；失敗不要 raise，以免部署回滾
+        client.admin.command("ping")
+        app.state.mongo = client
+        app.state.db = client[os.getenv("DB_NAME", "tcb")]
+        print("✅ Mongo ready")
+    except PyMongoError as e:
+        print("❌ Mongo not ready:", e)
+    try:
+        yield
+    finally:
+        if app.state.mongo:
+            app.state.mongo.close()
+            print("🛑 Mongo client closed.")
 
 app = FastAPI(lifespan=lifespan)
 
