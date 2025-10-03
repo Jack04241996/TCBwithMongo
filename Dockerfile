@@ -10,11 +10,11 @@ WORKDIR /app
 # 先複製 requirements 以利快取
 COPY requirements.txt /app/requirements.txt
 
-# 只安裝 requirements（不要再額外安裝 motor！）
+# 安裝 requirements
 RUN python -m pip install --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
-# 可選：快速健檢（確認沒有 motor、且 AsyncMongoClient 可匯入）
+# 可選：快速健檢
 RUN python - <<'PY'
 try:
     import motor  # 若這裡成功代表你的 requirements 還殘留 motor

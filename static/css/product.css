@@ -1,0 +1,88 @@
+/* ✅ 產品容器：整體排版舒適化 + 左側空白 */
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 48px;                     /* ✅ 卡片間距大一點 */
+    padding: 40px 40px 40px 80px;  /* ✅ 左側空間 80px */
+}
+
+/* ✅ 單一產品卡片樣式：移除外框與陰影，增加間距 */
+.product-card {
+    width: 220px;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 8px 0;              /* 上下 padding 留空 */
+    text-align: center;
+}
+
+/* ✅ 商品圖片統一尺寸 + 圓角 + 下方留距 */
+.product-image {
+    width: 220px;
+    height: 220px;
+    object-fit: cover;          /* ✅ 圖片不變形 */
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+/* ✅ 商品標題與文字距離清爽 */
+.product-card h3 {
+    font-size: 18px;
+    margin: 0 0 4px 0;
+    font-weight: bold;
+}
+
+.product-card p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+/* ✅ 數量控制按鈕區域 */
+.product-card .quantity-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.product-card .quantity-control button {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    background-color: #ffe18d;      /* 淡黃色按鈕 */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.product-card .quantity-control button:hover {
+    background-color: #ffcc66;
+}
+
+.product-card .quantity-control input {
+    width: 44px;
+    height: 32px;
+    text-align: center;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* ✅ 加入購物車按鈕美化 */
+.product-card button.add_to_cart {
+    background-color: #ff9900;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.product-card button.add_to_cart :hover {
+    background-color: #e88e00;
+}

@@ -1,0 +1,101 @@
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fedc00;
+    padding: 10px 20px;
+}
+
+.navbar a {
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.delivery-icon
+{
+    width: 50px;           
+    height: auto; 
+}
+
+.nav-left,
+.nav-right {
+    display: flex;
+    align-items: center;
+}
+
+.home-icon {
+    width: 75px;           
+    height: auto;  
+}
+
+.watermark-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.05;              /* 調低透明度讓內容可閱讀 */
+    object-fit: cover;          /* 圖片填滿但保持比例 */
+    z-index: 0;
+    pointer-events: none;       /* 不影響滑鼠事件 */
+    user-select: none;
+}
+
+/*footer*/
+.site-footer {
+  background-color: #ffcf75e8;
+  color: black;
+  padding: 40px 20px 20px;
+  font-size: 20px;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.footer-section {
+  flex: 1 1 200px;
+  margin: 10px;
+}
+
+.footer-section h4 {
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  padding-bottom: 5px;
+}
+
+.footer-section a {
+  color: black;
+  text-decoration: none;
+}
+
+.footer-section a:hover {
+  text-decoration: underline;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.3);
+  padding-top: 10px;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+

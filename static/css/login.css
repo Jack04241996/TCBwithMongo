@@ -1,0 +1,34 @@
+/*LOGIN*/
+.login-form {
+    background-color: #ffe18d;
+    padding: 30px;
+    border: 1px solid #e88e00;
+    border-radius: 12px;
+    width: 300px;
+    margin: 100px auto; /* 垂直距離 100px 並置中 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+.login-title {
+    text-align: center;
+    margin-top: 60px;
+}
+.login-btn,.login-build-btn{
+        padding: 6px 12px;
+    margin: 4px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.2s ease;
+}
+.login-btn {
+    background-color: #ffb95d;
+    color: white;
+}
+
+.login-build-btn {
+    background-color: #ffb95d;
+    color: white;
+}

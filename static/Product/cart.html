@@ -1,105 +1,283 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>thecrunchybear</title>
-    <link rel="icon" type="image/png" href="/image/favicon.png">
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8">
+  <title>購物車</title>
+  <link rel="icon" type="image/png" href="/image/favicon.png">
+  <link rel="stylesheet" href="/static/css/cart.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- 導覽列 -->
-    <div id="navbar"></div>
-    <div class = cart-page>
-        <h2>🛒 購物車</h2>
-        <table>
-            <tr>
-                <th>商品</th>
-                <th>圖片</th>
-                <th>單價</th>
-                <th>數量</th>
-                <th>小計</th>
-                <th>操作</th>
-            </tr>
-            {% for item in cart_items %}
-            <tr>
-                <td>{{ item.name }}</td>
-                <td><img src="{{ item.img }}" width="80"></td>
-                <td class="price">{{ item.price }}</td>
-                <td>
-                    <div class="quantity-control">
-                        <button type="button" onclick="changeQuantity(this, -1)">－</button>
-                        <input type="text" name="quantity" value="{{ item.quantity }}" readonly>
-                        <input type="hidden" name="name" value="{{ item.name }}">
-                        <button type="button" onclick="changeQuantity(this, 1)">＋</button>
-                    </div>
-                </td>
-                <td class="subtotal">{{ item.price * item.quantity }}</td>
-                <td>
-                    <form method="post" action="/remove_from_cart">
-                        <input type="hidden" name="name" value="{{ item.name }}">
-                        <button type="submit">移除</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-        <h3>總金額：<span id="total-amount">{{ total }}</span> 元</h3>
-    </div>
+  <!-- 導覽列 -->
+  <div id="navbar"></div>
 
+  <!-- 購物車清單（沿用 products 的版型：grid + card） -->
+  <div class="product-grid" id="cartGrid"></div>
 
-    <script type="module">
-    import { logout, loadUserStatus, isTokenExpired } from "/static/js/auth.js";
+  <!-- 合計 -->
+  <div id="cartTotal" style="margin:16px; font-weight:600;"></div>
+
+  <!-- 浮水印 -->
+  <img src="/image/浮水印.jpg" class="watermark-img">
+
+  <!-- 頁尾 -->
+  <div id="footer"></div>
+
+  <script type="module">
+    import { logout , loadUserStatus } from "/static/js/auth.js";
     import { controlNavbarLinks } from "/static/js/navbar.js";
 
+    // ===== 1) 載入 navbar / footer（保留你的作法） =====
     const navRes = await fetch("/static/components/navbar.html");
     document.getElementById("navbar").innerHTML = await navRes.text();
 
     await loadUserStatus();
     controlNavbarLinks();
-    
+
     const footerRes = await fetch("/static/components/footer.html");
     document.getElementById("footer").innerHTML = await footerRes.text();
-    
-    function changeQuantity(btn, delta) {
-            const input = btn.parentNode.querySelector("input[name='quantity']");
-            let qty = parseInt(input.value);
-            const MAX_QTY = 10;
-            const MIN_QTY = 0;
 
-            // 檢查是否超過上限
-            if (qty >= MAX_QTY && delta > 0) {
-                alert("最多只能購買 " + MAX_QTY + " 件,需大量訂購請聯私訊Instergram");
-                return;
-            }
-
-            // 檢查是否低於下限
-            if (qty <= MIN_QTY && delta < 0) {
-                return;
-            }
-
-            // 更新數值
-            qty = qty + delta;
-            input.value = qty;
-            const row = btn.closest("tr");
-            const price = parseInt(row.querySelector(".price").innerText) || 0;
-            row.querySelector(".subtotal").innerText = price * qty;
-
-            // 更新總金額
-            updateTotal();
-        }
-
-    function updateTotal() {
-        let total = 0;
-        document.querySelectorAll(".subtotal").forEach(cell => {
-            total += parseInt(cell.innerText) || 0;
-        });
-        document.getElementById("total-amount").innerText = total;
+    // ===== 2) 小工具：token / header / 未登入導向 =====
+    function getToken() {
+      const t = localStorage.getItem("token");
+      return t && t.trim() ? t : null;
+    }
+    function authHeaders(json = true) {
+      const h = { "Authorization": "Bearer " + getToken() };
+      if (json) h["Content-Type"] = "application/json";
+      return h;
+    }
+    function ensureAuthOrRedirect() {
+      if (!getToken()) {
+        alert("請先登入");
+        location.href = "/login";
+        return false;
+      }
+      return true;
+    }
+    function nt$(n) {
+      n = Number(n || 0);
+      return "NT$ " + n.toLocaleString("zh-Hant-TW");
     }
 
-    window.onload = updateTotal;
-    window.logout = logout;
-    </script>
+    // ===== 3) 讀購物車並渲染 =====
+    async function loadCart() {
+      if (!ensureAuthOrRedirect()) return;
+      try {
+        const res = await fetch("/api/cart", { headers: authHeaders(false) });
+        if (res.status === 401) { location.href = "/login"; return; }
+        const data = await res.json();
+        renderCart(data.cart || []);
+        renderTotal(data.total || { subtotal: 0, count: 0 });
+      } catch (e) {
+        console.error(e);
+        alert("讀取購物車失敗");
+      }
+    }
 
+    function renderCart(items) {
+      const grid = document.getElementById("cartGrid");
+      grid.innerHTML = "";
+
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "product-card";
+        empty.style.textAlign = "center";
+        empty.textContent = "購物車是空的";
+        grid.appendChild(empty);
+        return;
+      }
+
+      items.forEach(it => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <img src="${it.img || "/image/placeholder.png"}" class="product-image" alt="${escapeHtml(it.name)}">
+          <h2 class="product-name">${escapeHtml(it.name)}</h2>
+          <p class="product-price">單價：${nt$(it.price)}</p>
+
+          <div class="quantity-control">
+            <button type="button" onclick="changeQuantity(this, '${escapeJs(it.name)}', -1)">－</button>
+            <input type="text" value="${Number(it.quantity || 0)}" readonly>
+            <button type="button" onclick="changeQuantity(this, '${escapeJs(it.name)}', 1)">＋</button>
+          </div>
+
+          <p class="product-price">小計：<strong>${nt$(Number(it.price) * Number(it.quantity))}</strong></p>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="add_to_cart" onclick="removeItem('${escapeJs(it.name)}')">
+              <i class="fa fa-trash"></i> 移除
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      // 清空購物車按鈕卡片
+      const actions = document.createElement("div");
+      actions.className = "product-card actions-bottom";
+      actions.innerHTML = `
+        <div class="cart-bottom-actions">
+          <button type="button" class="add_to_cart" onclick="clearCart()">
+            <i class="fa-solid fa-broom" aria-hidden="true"></i> 清空購物車
+          </button>
+          <button type="button" class="add_to_cart" id="checkoutBtn" onclick="checkout()">
+            <i class="fa-solid fa-credit-card" aria-hidden="true"></i> 前往結帳
+          </button>
+        </div>
+      `;
+      grid.appendChild(actions);
+    }
+
+    function renderTotal(total) {
+      const el = document.getElementById("cartTotal");
+      el.textContent = `共 ${total.count || 0} 件｜合計 ${nt$(total.subtotal || 0)}`;
+    }
+
+    // ===== 4) 操作：數量調整 / 移除 / 清空 =====
+    async function setQuantity(name, qty) {
+      if (!ensureAuthOrRedirect()) return;
+      qty = Number(qty);
+      try {
+        if (qty <= 0) {
+          await removeItem(name);
+          return;
+        }
+        const res = await fetch(`/api/cart/items/${encodeURIComponent(name)}`, {
+          method: "PATCH",
+          headers: authHeaders(),
+          body: JSON.stringify({ quantity: qty })
+        });
+        if (res.status === 401) { location.href = "/login"; return; }
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        renderCart(data.cart || []);
+        renderTotal(data.total || { subtotal: 0, count: 0 });
+      } catch (e) {
+        console.error(e);
+        alert("更新數量失敗");
+      }
+    }
+
+    function changeQuantity(btn, name, delta) {
+      const input = btn.parentNode.querySelector("input");
+      let qty = parseInt(input.value || "0", 10) + Number(delta);
+      if (qty > 99) qty = 99;
+      if (qty < 0) qty = 0;
+      input.value = String(qty);
+      // 立刻送出（也可改成 debounce）
+      setQuantity(name, qty);
+    }
+
+    async function removeItem(name) {
+      if (!ensureAuthOrRedirect()) return;
+      try {
+        const res = await fetch(`/api/cart/items/${encodeURIComponent(name)}`, {
+          method: "DELETE",
+          headers: authHeaders(false)
+        });
+        if (res.status === 401) { location.href = "/login"; return; }
+        if (!res.ok) {
+          // 若 404，直接重載購物車
+          await loadCart();
+          return;
+        }
+        const data = await res.json();
+        renderCart(data.cart || []);
+        renderTotal(data.total || { subtotal: 0, count: 0 });
+        alert("已移除該商品");
+      } catch (e) {
+        console.error(e);
+        alert("移除失敗");
+      }
+    }
+
+    async function clearCart() {
+      if (!ensureAuthOrRedirect()) return;
+      if (!confirm("確定要清空購物車嗎？")) return;
+      try {
+        const res = await fetch("/api/cart", { method: "DELETE", headers: authHeaders(false) });
+        if (res.status === 401) { location.href = "/login"; return; }
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        renderCart(data.cart || []);
+        renderTotal(data.total || { subtotal: 0, count: 0 });
+      } catch (e) {
+        console.error(e);
+        alert("清空失敗");
+      }
+
+    }
+    async function checkout() {
+      if (!ensureAuthOrRedirect()) return;
+
+      const btn = document.getElementById("checkoutBtn");
+      btn?.setAttribute("disabled", "disabled");
+      btn?.classList.add("disabled");
+
+      try {
+        // 1) 呼叫你的後端 REST API（回 JSON：{ action, method, fields }）
+        const res = await fetch("/api/checkout", {
+          method: "POST",
+          headers: authHeaders(),         // 會自動帶上 Authorization 與 JSON content-type
+          body: JSON.stringify({})        // 這裡不帶金額，金額要由後端依購物車重算
+        });
+
+        if (res.status === 401) { location.href = "/login"; return; }
+        if (!res.ok) throw new Error(await res.text());
+
+        // 有些情況你可能回 HTML（非 REST），這裡做個兼容處理
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("text/html")) {
+          // 後端直接回 form HTML（不太 REST，但支援一下）
+          const html = await res.text();
+          const w = window.open("", "_self"); // 直接在當前視窗跳
+          w.document.write(html);
+          w.document.close();
+          return;
+        }
+
+        // 2) 正統 REST：拿到 JSON → 建表單 → submit 到綠界
+        const { action, method, fields } = await res.json();
+
+        const form = document.createElement("form");
+        form.action = action;
+        form.method = method || "POST";
+        form.style.display = "none";
+
+        Object.entries(fields || {}).forEach(([k, v]) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = k;
+          input.value = String(v ?? "");
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      } catch (e) {
+        console.error(e);
+        alert("建立結帳流程失敗，請稍後再試");
+      } finally {
+        btn?.removeAttribute("disabled");
+        btn?.classList.remove("disabled");
+      }
+    }
+
+    // ===== 5) 小工具（XSS-safe） =====
+    function escapeHtml(s=""){ return s.replace(/[&<>"]/g,c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+    function escapeJs(s=""){ return s.replace(/['\\]/g, m => '\\' + m); }
+
+    // ===== 6) 初始化 =====
+    if (ensureAuthOrRedirect()) loadCart();
+
+    // 給 inline handler 用
+    window.logout = logout;
+    window.changeQuantity = changeQuantity;
+    window.removeItem = removeItem;
+    window.clearCart = clearCart;
+    window.checkout = checkout;
+  </script>
 </body>
 </html>

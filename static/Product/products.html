@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <title>商品頁面</title>
   <link rel="icon" type="image/png" href="/image/favicon.png">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/product.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -23,93 +24,131 @@
     <script type="module">
     import { logout , loadUserStatus } from "/static/js/auth.js";
     import { controlNavbarLinks } from "/static/js/navbar.js";
-        // 1. 載入 navbar 與 footer
 
+    // 先載入 navbar / footer（保留你的寫法）
     const navRes = await fetch("/static/components/navbar.html");
     document.getElementById("navbar").innerHTML = await navRes.text();
 
     await loadUserStatus();
     controlNavbarLinks();
-    
+
     const footerRes = await fetch("/static/components/footer.html");
     document.getElementById("footer").innerHTML = await footerRes.text();
 
+    // ==== 新增：權限/Token 小工具 ====
+    function getToken() {
+        const t = localStorage.getItem("token");
+        return t && t.trim() ? t : "";
+    }
+    function ensureAuthOrRedirect() {
+        if (!getToken()) {
+        alert("請先登入");
+        location.href = "/login";
+        return false;
+        }
+        return true;
+    }
 
-
-    // 3. 抓商品清單
-    const prodRes = await fetch("/api/products");
+    // 取得商品清單
+    const prodRes = await fetch("/api/products", { cache: "no-store" });
     const data = await prodRes.json();
 
     const productGrid = document.getElementById("productGrid");
     data.products.forEach(p => {
         const form = document.createElement("form");
         form.className = "product-card";
-        form.onsubmit = function (e) {
-            addToCart(e, form);
-        };
+
+        // ✅ 只綁一次 submit（避免重複送出）
+        form.addEventListener("submit", (e) => addToCart(e, form));
 
         form.innerHTML = `
-            <img src="${p.img}" class="product-image" alt="${p.name}">
-            <h2 class="product-name">${p.name}</h2>
-            <p class="product-description">${p.description}</p>
-            <p class="product-price">價格：${p.price} 元</p>
+        <img src="${p.img}" class="product-image" alt="${p.name}">
+        <h2 class="product-name">${p.name}</h2>
+        <p class="product-description">${p.description}</p>
+        <p class="product-price">價格：${p.price} 元</p>
 
-            <input type="hidden" name="name" value="${p.name}">
-            <input type="hidden" name="price" value="${p.price}">
-            <input type="hidden" name="img" value="${p.img}">
+        <input type="hidden" name="name" value="${p.name}">
+        <input type="hidden" name="price" value="${p.price}">
+        <input type="hidden" name="img" value="${p.img}">
 
-            <div class="quantity-control">
-                <button type="button" onclick="changeQuantity(this, -1)">－</button>
-                <input type="text" name="quantity" value="0" readonly>
-                <button type="button" onclick="changeQuantity(this, 1)">＋</button>
-            </div>
+        <div class="quantity-control">
+            <button type="button" onclick="changeQuantity(this, -1)">－</button>
+            <input type="text" name="quantity" value="0" readonly>
+            <button type="button" onclick="changeQuantity(this, 1)">＋</button>
+        </div>
 
-            <button type="submit" class="add_to_cart">加入購物車</button>
+        <button type="submit" class="add_to_cart">加入購物車</button>
+
         `;
         productGrid.appendChild(form);
     });
 
     function changeQuantity(btn, delta) {
         const input = btn.parentNode.querySelector("input[name='quantity']");
-        let qty = parseInt(input.value);
+        let qty = parseInt(input.value || "0", 10);
         if (qty + delta < 0) return;
         if (qty + delta > 10) {
-            alert("最多只能購買 10 件, 需大量訂購請私訊 Instagram");
-            return;
+        alert("最多只能購買 10 件, 需大量訂購請私訊 Instagram");
+        return;
         }
-        input.value = qty + delta;
+        input.value = String(qty + delta);
     }
 
-    function addToCart(event, form) {
+    async function addToCart(event, form) {
         event.preventDefault();
+        if (!ensureAuthOrRedirect()) return;
+
         const fd = new FormData(form);
-        const payload = {
-        name: fd.get("name"),
-        price: parseInt(fd.get("price"), 10),
-        img: fd.get("img"),
-        quantity: parseInt(fd.get("quantity"), 10),
-        };
-        fetch("/add_to_cart", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(payload),
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.error === "not_logged_in") {
-                window.location.href = "/login.html";
-            } else {
-                alert("✅ 已加入購物車！");
-            }
-        })
-        .catch(error => {
-            console.error("❌ 錯誤：", error);
-            alert("❌ 發生錯誤！");
+        const name = (fd.get("name") || "").toString();
+        const quantity = parseInt((fd.get("quantity") || "0").toString(), 10);
+
+        if (!name || !Number.isFinite(quantity) || quantity <= 0) {
+        alert("請選擇數量（至少 1 件）");
+        return;
+        }
+
+        const btn = form.querySelector("button.add_to_cart");
+        btn.disabled = true;
+
+        try {
+        const res = await fetch("/api/cart", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + getToken()   // ✅ 每次動態取 token
+            },
+            body: JSON.stringify({ name, quantity })     // 後端自行取價/圖快照
         });
+
+        if (res.status === 401) {
+            alert("請先登入");
+            location.href = "/login";
+            return;
+        }
+
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            const msg = (body && (body.error || body.detail)) || "加入購物車失敗";
+            alert("❌ " + msg);
+            return;
+        }
+
+        alert("✅ 已加入購物車！");
+        const qtyInput = form.querySelector("input[name='quantity']");
+        if (qtyInput) qtyInput.value = "0";
+        } catch (err) {
+        console.error("addToCart error:", err);
+        alert("❌ 發生錯誤，請稍後再試");
+        } finally {
+        btn.disabled = false;
+        }
     }
+
+    // 將函式掛到 window（因為 HTML 內用 onclick）
     window.logout = logout;
     window.changeQuantity = changeQuantity;
     window.addToCart = addToCart;
     </script>
+
 </body>
 </html>

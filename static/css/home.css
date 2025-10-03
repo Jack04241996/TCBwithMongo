@@ -1,0 +1,36 @@
+/*home*/
+
+.news-container {
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+}
+
+.news-box {
+    background-color: rgba(255, 240, 220, 0.5); /* 柔和淡橘 */
+    border: 2px solid #ffd6a0;
+    border-radius: 18px;
+    padding: 40px;
+    max-width: 800px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px); /* 可選：一點玻璃感 */
+}
+
+.news-title {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    color: #ff6f00;
+    margin-bottom: 30px;
+}
+
+.news-box p {
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.news-box .highlight {
+    color: #ff6f00;
+    font-weight: bold;
+}

@@ -1,0 +1,171 @@
+/* ===== Brand palette (延續你的色系) ===== */
+:root{
+  --brand-yellow:#fedc00;
+  --yellow-soft:#ffe18d;
+  --orange:#ffb95d;
+  --orange-strong:#ff9900;
+  --orange-deep:#e88e00;
+  --text:#000;
+  --muted:#666;
+  --border:#eaeaea;
+}
+
+
+
+/* ===== Grid：沿用 products 的排版 ===== */
+.product-grid{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  gap:48px;
+  padding:40px 40px 40px 80px; /* 左側 80px 餘白 */
+}
+
+/* ===== Card：沿用 products 卡片風格，細調購物車顯示 ===== */
+.product-card{
+  width:220px;
+  border:none;
+  box-shadow:none;
+  background:transparent;
+  padding:8px 0;
+  text-align:center;
+}
+
+/* 商品圖一致尺寸 */
+.product-image{
+  width:220px; height:220px;
+  object-fit:cover;
+  border-radius:12px;
+  margin-bottom:12px;
+  border:1px solid var(--border);
+}
+
+/* 文字層級 */
+.product-name{
+  font-size:18px;
+  font-weight:bold;
+  margin:0 0 4px 0;
+}
+.product-price{
+  margin:4px 0;
+  font-size:14px;
+  color:#222;
+}
+
+/* 小計字樣 */
+.product-card .subtotal{
+  margin-top:6px;
+  font-weight:bold;
+}
+
+/* 數量控制：維持你的黃色按鈕風格 */
+.quantity-control{
+  display:flex; justify-content:center; align-items:center;
+  gap:8px; margin:12px 0;
+}
+.quantity-control button{
+  width:32px; height:32px; font-size:18px;
+  background-color:var(--yellow-soft);
+  border:none; border-radius:6px; cursor:pointer;
+  transition:background-color .2s ease;
+}
+.quantity-control button:hover{ background:#ffcc66; }
+.quantity-control input{
+  width:44px; height:32px; text-align:center; font-size:16px;
+  border:1px solid #ccc; border-radius:6px; background:white;
+}
+
+/* 行動按鈕：加入／移除／清空（沿用橘色系） */
+button.add-to-cart,
+button.add_to_cart,          /* 兩個類名都支援 */
+.btn-primary{
+  background:var(--orange-strong);
+  color:white; border:none; border-radius:6px;
+  padding:8px 12px; font-size:14px; cursor:pointer;
+  transition:background-color .2s ease, transform .05s ease;
+}
+button.add-to-cart:hover,
+button.add_to_cart:hover,
+.btn-primary:hover{ background:var(--orange-deep); }
+button.add-to-cart:active,
+button.add_to_cart:active,
+.btn-primary:active{ transform:translateY(1px); }
+
+/* 危險類：移除單品 */
+.btn-danger{
+  background:#ff5a3c; color:#fff; border:none;
+  border-radius:6px; padding:8px 12px; cursor:pointer;
+  transition:opacity .2s ease, transform .05s ease;
+}
+.btn-danger:hover{ opacity:.9; }
+.btn-danger:active{ transform:translateY(1px); }
+
+/* 次要類：清空／返回 */
+.btn-secondary{
+  background:var(--yellow-soft); color:#000;
+  border:1px solid #f2c056; border-radius:6px;
+  padding:8px 12px; cursor:pointer;
+  transition:background-color .2s ease;
+}
+.btn-secondary:hover{ background:#ffeaad; }
+
+/* 置中動作卡（清空按鈕用） */
+.product-card.actions{
+  text-align:center;
+  padding-top:8px;
+}
+
+.product-card.actions-bottom{
+  width: 100%;          /* 讓這張卡吃滿一整列 → 跑到最底下 */
+  text-align: right;    /* 內容靠右 */
+  padding-right: 80px;  /* 與你的版面左右邊距對齊（依需要調整） */
+}
+
+/* 按鈕不要換行，圖示與文字對齊 */
+.product-card.actions-bottom .add_to_cart{
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+/* 總計條 */
+#cartTotal{
+  margin:16px 80px 24px 80px;
+  padding:12px 16px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#fff8dd;              /* 淡黃底呼應品牌 */
+  font-weight:600;
+}
+
+/* 空車提示 */
+.cart-empty{
+  width:100%;
+  margin:40px 80px;
+  padding:24px;
+  border:1px dashed #f2c056;
+  border-radius:12px;
+  background:#fff8dd;
+  color:var(--muted);
+  text-align:center;
+}
+
+/* 額外訊息（成功/錯誤） */
+.msg{
+  margin:8px 80px;
+  font-size:14px;
+}
+.msg.success{ color:#0a7; }
+.msg.error{ color:#d33; }
+
+.cart-bottom-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+  margin:16px 80px 40px 80px;  /* 與你的 grid/total 對齊 */
+}
+
+/* 空車時可隱藏 */
+.hidden{ display:none !important; }

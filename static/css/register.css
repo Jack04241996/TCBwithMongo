@@ -1,0 +1,43 @@
+/* REGISTER */
+.register-form {
+    background-color: #ffe18d;
+    padding: 30px;
+    border: 1px solid #e88e00;
+    border-radius: 12px;
+    width: 300px;
+    margin: 100px auto; /* 垂直距離 100px 並置中 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.register-title {
+    text-align: center;
+    margin-top: 60px;
+}
+
+.register-btn {
+    padding: 6px 12px;
+    margin: 4px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 15px;
+    background-color: #ffb95d;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
+.register-btn:hover {
+    background-color: #e88e00;
+}
+.error-text{
+    text-align: center;
+    margin-top: 60px;
+    color: #d9534f;
+}
+.success-text{
+    text-align: center;
+    margin-top: 60px;
+    color: green;
+}
