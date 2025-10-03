@@ -1,24 +1,47 @@
-# Python 編譯快取
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# 環境設定（避免敏感資訊被打包進 image）
-.env
-*.env
-
-# Git 相關
+# === Git 相關 ===
 .git
 .gitignore
+.gitattributes
 
-# IDE / 編輯器設定
+# === Python 產物 ===
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+
+# === IDE / 編輯器 ===
 .vscode/
 .idea/
+*.iml
 
-# 作業系統雜項
-.DS_Store
-Thumbs.db
+# === Secrets / 憑證 ===
+.env
+*.pem
+*.key
+*.pfx
+*.cer
+*.crt
+*.csr
 
-# 不需要打包的檔案（依專案情況）
+# === ECPay 可能的憑證檔 ===
+ECPay/**/*.pem
+ECPay/**/*.key
+ECPay/**/*.pfx
+ECPay/**/cert*
+ECPay/**/private*
+ECPay/**/secret*
+
+# === 日誌 / 暫存檔 ===
 *.log
+*.tmp
+tmp/
+temp/
+
+# === DB / 備份檔 ===
+*.sqlite
+*.db
+*.db-journal
+dump/
+backups?/

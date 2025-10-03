@@ -1,2 +1,63 @@
+# === Secrets / 環境變數 ===
 .env
+*.secret
+*.key
+*.pem
+*.pfx
+*.cer
+*.crt
+*.csr
+# 範例檔建議保留
+!.env.example
+
+# === Python 產物 ===
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+dist/
+build/
+
+# === ECPay (程式保留，但忽略憑證) ===
+ECPay/**/*.pem
+ECPay/**/*.key
+ECPay/**/*.pfx
+ECPay/**/cert*
+ECPay/**/private*
+ECPay/**/secret*
+
+# === DB / 備份檔 ===
+*.sqlite
+*.db
+*.db-journal
+dump/
+backups?/
+
+# === 日誌 / 暫存檔 ===
+*.log
+*.tmp
+tmp/
+temp/
+
+# === IDE / 編輯器 ===
+.vscode/
+.idea/
+*.iml
+
+# === OS 系統雜檔 ===
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+# Linux
+*~
