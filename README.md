@@ -73,23 +73,23 @@ v1.2（2025-10，進行中）
 
 專案架構：
 
-TCBwithMongo/
-├─ main.py              # FastAPI 主程式入口
-├─ database.py          # MongoDB 連線與操作
-├─ jwt_handler.py       # JWT 產生、驗證、加解密
-├─ middleware.py        # Middleware：登入狀態與權限控管
-├─ model.py             # Pydantic 資料模型 (User, Product, Login, Register)
-│
-├─ requirements.txt     # Python 相依套件清單
-├─ Dockerfile           # Docker 映像建置設定
-├─ .gitignore           # Git 忽略清單
-├─ .dockerignore        # Docker build 忽略清單
-├─ .env.example         # 環境變數範本 (僅示意，不含敏感值)
-├─ README.md            # 專案說明文件
-│
-├─ static/              # 前端靜態資源 (CSS / JS / 圖示等)
-├─ image/               # 商品圖片或其他圖檔
-├─ ECPay/               # 綠界金流 API 串接程式 (排除憑證檔)
-│   └─ ecpay_payment_sdk.py
-│
-└─ __pycache__/         # Python 編譯快取檔 (已被 gitignore)
+    TCBwithMongo/
+    ├─ main.py              # FastAPI 主程式入口
+    ├─ database.py          # MongoDB 連線與操作
+    ├─ jwt_handler.py       # JWT 產生、驗證、加解密
+    ├─ middleware.py        # Middleware：登入狀態與權限控管
+    ├─ model.py             # Pydantic 資料模型 (User, Product, Login, Register)
+    │
+    ├─ requirements.txt     # Python 相依套件清單
+    ├─ Dockerfile           # Docker 映像建置設定
+    ├─ .gitignore           # Git 忽略清單
+    ├─ .dockerignore        # Docker build 忽略清單
+    ├─ .env.example         # 環境變數範本 (僅示意，不含敏感值)
+    ├─ README.md            # 專案說明文件
+    │
+    ├─ static/              # 前端靜態資源 (CSS / JS / 圖示等)
+    ├─ image/               # 商品圖片或其他圖檔
+    ├─ ECPay/               # 綠界金流 API 串接程式 (排除憑證檔)
+    │   └─ ecpay_payment_sdk.py
+    │
+    └─ __pycache__/         # Python 編譯快取檔 (已被 gitignore)
