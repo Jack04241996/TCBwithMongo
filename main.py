@@ -44,7 +44,7 @@ def _redact(uri: str) -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     uri = os.getenv("MONGO_URI", "")
-    print("▶ Using MONGO_URI:", _redact(uri))
+    print("Using MONGO_URI:", _redact(uri))
     app.state.mongo = None
     app.state.db = None
     try:
@@ -54,17 +54,14 @@ async def lifespan(app: FastAPI):
         app.state.db = client[os.getenv("DB_NAME", "tcb")]
         print("✅ Mongo ready")
         await ensure_cart_indexes()
-        print("✅ Cart indexes ready")
-        await ensure_order_indexes()
-        print("✅ Order indexes ready")
     except PyMongoError as e:
-        print("❌ Mongo not ready:", e)
+        print(" Mongo not ready:", e)
     try:
         yield
     finally:
         if app.state.mongo:
             app.state.mongo.close()
-            print("🛑 Mongo client closed.")
+            print("Mongo client closed.")
 
 app = FastAPI(lifespan=lifespan)
 
