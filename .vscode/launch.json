@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug FastAPI Project backend: Python Debugger",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",   // 從 backend/app/main.py 裡面的 app
+        "--reload"
+      ],
+      "cwd": "${workspaceFolder}/backend", // 工作目錄 = 專案根底下的 backend
+      "jinja": true,
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug Frontend: Launch Chrome against http://localhost:5173",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend"
+    }
+  ]
+}

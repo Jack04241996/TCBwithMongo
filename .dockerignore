@@ -45,3 +45,8 @@ temp/
 *.db-journal
 dump/
 backups?/
+# === uv / virtualenv ===
+.venv/
+backend/.venv/
+.uv/
+.python-version

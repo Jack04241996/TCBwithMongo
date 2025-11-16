@@ -28,8 +28,6 @@ if not logger.handlers:
 
 
 
-
-
 ChoosePayment = {
     'Credit': 'Credit',  # 信用卡及 GooglePay
     'GooglePay': 'GooglePay',  # GooglePay (若為PC版時不支援)
