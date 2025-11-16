@@ -1,19 +1,16 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, FileResponse
-from pydantic import BaseModel
 from app.core.paths import STATIC_DIR
 from app.core.db import users_col
 from app.crud import get_user_by_account
 from app.core.security import create_jwt, decode_jwt  # 你自己的 jwt 工具
 from passlib.context import CryptContext
-
+from app.models import LoginData
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class LoginData(BaseModel):
-    account: str
-    password: str
+
 
 @router.get("/login")
 async def get_login_page():

@@ -1,19 +1,13 @@
 # register.py
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel, EmailStr
 from app.core.db import users_col
 from app.crud import user_exists, create_user
 from app.core.paths import STATIC_DIR
-
+from app.models import RegisterData
 router = APIRouter(tags=["register"])
 
-class RegisterData(BaseModel):
-    account: str
-    password: str
-    username: str
-    phone: str
-    email: EmailStr
+
 
 @router.get("/build")
 async def get_build_page():

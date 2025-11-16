@@ -2,18 +2,13 @@ from fastapi import APIRouter, Depends ,  HTTPException , status
 from fastapi.responses import FileResponse, JSONResponse
 from app.api.deps import  require_level_api ,  get_jwt_payload , get_current_user
 from app.core.db import users_col
-from pydantic import BaseModel, EmailStr,  StringConstraints
-from typing import Annotated
+from app.models import UserUpdate
 from app.core.paths import STATIC_DIR
 from app.crud import delete_user_by_account , update_user_by_account
 
 router = APIRouter(tags=["users"])
 
-class UserUpdate(BaseModel):
-    username: Annotated[str, StringConstraints(strip_whitespace=True)]
-    phone: Annotated[str, StringConstraints(strip_whitespace=True)]
-    email: EmailStr
-    level: int
+
 
 
 @router.get("/users_management" )

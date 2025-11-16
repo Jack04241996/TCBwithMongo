@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends,  HTTPException , status
 from fastapi.responses import FileResponse, JSONResponse
 from app.core.db import products_col
-from pydantic import BaseModel
 from app.api.deps import  require_level_api, get_jwt_payload
 from app.core.paths import STATIC_DIR
 from app.crud import get_all_products , delete_product_by_name , update_product , create_product, product_name_exists, get_product_by_name
-
+from app.models import ProductUpdate, ProductBuild
 router = APIRouter(tags=["products_management"])
 
 @router.get("/products_management")
@@ -37,10 +36,6 @@ async def edit_product(name: str,products_collection = Depends(products_col)):
     product = await get_product_by_name(products_collection, name)
     return JSONResponse(content={"products": product})
 
-class ProductUpdate(BaseModel):
-    price: int | None = None
-    description: str | None = None
-    img: str | None = None
 
 @router.patch("/api/products_edit/{name}", dependencies=[Depends(require_level_api([3]))])
 async def update_product(
@@ -62,11 +57,7 @@ async def update_product(
 async def serve_product_build_page():
     return FileResponse(STATIC_DIR/"Product"/"products_build.html")   
 
-class ProductBuild(BaseModel):
-    name: str 
-    price: int 
-    description: str 
-    img: str 
+
 
 @router.post("/api/products_build", dependencies=[Depends(require_level_api([2, 3]))])
 async def register_product(

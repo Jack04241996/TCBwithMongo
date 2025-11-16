@@ -1,4 +1,4 @@
-from pydantic import BaseModel ,  Field
+from app.models import AddToCartRequest, SetQuantityRequest
 from fastapi import APIRouter, Depends , HTTPException , status , Request
 from fastapi.responses import FileResponse , PlainTextResponse
 from datetime import datetime , timezone
@@ -24,11 +24,6 @@ ECPAY_STAGE = "https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"
 FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL")
 BASE_URL = os.getenv("BASE_URL")
 
-class CartItem(BaseModel):
-    name: str
-    price: int = Field(ge=0)
-    img: str
-    quantity: int = Field(ge=1)
 
 def _totals(items: list[dict]):
     subtotal = sum(int(i.get("price", 0)) * int(i.get("quantity", 0)) for i in items)
@@ -60,9 +55,7 @@ async def get_cart_api(current: dict = Depends(get_current_user),carts_collectio
         "total": _totals(items),
     }
 
-class AddToCartRequest(BaseModel):
-    name: str
-    quantity: int = Field(ge=1) 
+
 
 # 加入/累加購物車
 @router.post("/api/cart", status_code=201)
@@ -159,8 +152,7 @@ async def remove_from_cart(
         "total": _totals(items),
     }
 
-class SetQuantityRequest(BaseModel):
-    quantity: int = Field(ge=1)
+
 
 @router.patch("/api/cart/items/{name}")
 async def set_quantity(
