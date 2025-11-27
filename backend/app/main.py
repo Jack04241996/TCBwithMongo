@@ -1,4 +1,4 @@
-from pathlib import Path
+
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.paths import STATIC_DIR, IMAGE_DIR
+
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}" if route.tags else route.name
 
@@ -25,14 +26,14 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/image", StaticFiles(directory=IMAGE_DIR), name="image")
 
-if settings.all_cors_origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.all_cors_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+# if settings.all_cors_origins: 前端分離用
+#     app.add_middleware(
+#         CORSMiddleware,
+#         allow_origins=settings.all_cors_origins,
+#         allow_credentials=True,
+#         allow_methods=["*"],
+#         allow_headers=["*"],
+#     )
 
 app.include_router(api_router)  #, prefix=settings.API_V1_STR
 

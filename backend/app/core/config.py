@@ -4,8 +4,7 @@ from typing import List, Optional
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "TCB-MONGO"
-    API_V1_STR: str = ""  # 路由已經寫 /api/
+    PROJECT_NAME: str = "TCB-MONGO" 
     SENTRY_DSN: Optional[str] = None
     ENVIRONMENT: str = "local"
 
